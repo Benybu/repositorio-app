@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repositorio Semanal | Imágenes</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(145deg, #f5f7fc 0%, #eef2f8 100%);
+            color: #1a2c3e;
+            padding: 2rem 1.5rem;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 3rem; }
+        .header h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(135deg, #1f4e6e, #2c7da0);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .header p { font-size: 1.2rem; color: #4a627a; margin-top: 0.6rem; }
+        .weeks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 2rem;
+        }
+        .week-card {
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .week-card:hover { transform: translateY(-6px); transition: 0.25s; }
+        .week-header {
+            background: linear-gradient(120deg, #2c7da0, #1f6390);
+            padding: 1.2rem 1.5rem;
+            color: white;
+        }
+        .week-header h2 { font-size: 1.7rem; display: flex; align-items: center; gap: 0.5rem; }
+        .week-header h2::before { content: "📅"; font-size: 1.5rem; }
+        .week-sub { font-size: 0.85rem; opacity: 0.85; margin-top: 0.4rem; }
+        .documents-list { padding: 1rem 1.2rem 1.4rem; min-height: 180px; }
+        .doc-item {
+            background: #f8fafd;
+            border-radius: 1rem;
+            margin-bottom: 0.9rem;
+            padding: 0.8rem 1rem;
+            border-left: 5px solid #2c7da0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+        .doc-info { display: flex; align-items: center; gap: 0.8rem; flex: 2; }
+        .doc-icon { font-size: 1.8rem; }
+        .doc-name { font-weight: 600; color: #1f3b4c; }
+        .doc-meta { font-size: 0.7rem; color: #6c86a3; margin-top: 0.2rem; }
+        .btn-preview {
+            background: #eff5fa;
+            border: 1px solid #cbdde9;
+            padding: 0.45rem 1rem;
+            border-radius: 2rem;
+            cursor: pointer;
+            color: #1f6390;
+            transition: 0.2s;
+        }
+        .btn-preview:hover { background: #2c7da0; color: white; }
+        .empty-docs {
+            text-align: center;
+            padding: 1.8rem;
+            color: #8ba0b5;
+            font-style: italic;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 1000px;
+            max-height: 90vh;
+            border-radius: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            background: #1f4e6e;
+            color: white;
+            padding: 1rem 1.5rem;
+        }
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: white;
+        }
+        .modal-body { padding: 1.5rem; overflow-y: auto; flex: 1; text-align: center; }
+        .image-viewer {
+            max-width: 100%;
+            max-height: 65vh;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            object-fit: contain;
+        }
+        .error-message {
+            background: #fee;
+            border-left: 4px solid #e74c3c;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            color: #c0392b;
+            margin: 1rem 0;
+            text-align: left;
+        }
+        .download-link {
+            display: inline-block;
+            background: #2c7da0;
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 2rem;
+            text-decoration: none;
+            margin-top: 1rem;
+            margin-right: 0.5rem;
+            border: none;
+            cursor: pointer;
+        }
+        .footer { text-align: center; margin-top: 3rem; color: #5f7d9c; }
+        .info-box {
+            background: #e8f4fd;
+            border: 1px solid #2c7da0;
+            padding: 0.8rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.85rem;
+        }
+        @media (max-width: 700px) {
+            body { padding: 1rem; }
+            .image-viewer { max-height: 50vh; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📂 Repositorio Semanal</h1>
+        <p>Organizado por semanas · Jefferson Benji Ore Mucha</p>
+    </div>
+    
+    <div class="weeks-grid" id="weeksGrid"></div>
+    <div class="footer">
+        <span>📌 UNIVERSIDA PERUANA LOS ANDES</span>
+    </div>
+</div>
+
+<div id="previewModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalDocTitle">Imagen</h3>
+            <button class="close-modal" id="closeModalBtn">&times;</button>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+    </div>
+</div>
+
+<script>
+    // ============================================================
+    // 🔧 CONFIGURACIÓN: AGREGA TUS IMÁGENES AQUÍ
+    // ============================================================
+    
+    const semanasData = [
+        {
+            id: 1,
+            nombre: "Semana 1:",
+            fecha: "13 - 17 Abril",
+            documentos: [
+                {
+                    titulo: "ORGANIZADOR",           // Título que se mostrará
+                    tipo: "",                   // Tipo imagen
+                    rutaArchivo: "imagenes/resumen.png",  // ← Ruta de tu imagen
+                    extension: "png"                  // Extensión: jpg, png, gif
+                }
+            ]
+        },
+        {
+            id: 2,
+            nombre: "Semana 2:",
+            fecha: "20 - 24 Abril",
+            // ====================================================
+            // 👇👇👇 AGREGA TU IMAGEN AQUÍ 👇👇👇
+            // ====================================================
+            documentos: [
+                {
+                    titulo: "ORGANIZADOR",           // Título que se mostrará
+                    tipo: "",                   // Tipo imagen
+                    rutaArchivo: "imagenes/organizador.png",  // ← Ruta de tu imagen
+                    extension: "png"                  // Extensión: jpg, png, gif
+                }
+            ]
+        },
+        {
+            id: 3,
+            nombre: "Semana 3:",
+            fecha: "-- -- --",
+            documentos: []
+        },
+        {
+            id: 4,
+            nombre: "Semana 4:",
+            fecha: "-- -- --",
+            documentos: []
+        },
+        {
+            id: 5,
+            nombre: "Semana 5:",
+            fecha: "-- -- --",
+            documentos: []
+        }
+    ];
+
+    // ============================================================
+    // FUNCIÓN PARA MOSTRAR LA IMAGEN (CORREGIDA)
+    // ============================================================
+    function showImagePreview(doc, weekName) {
+        const modal = document.getElementById('previewModal');
+        const modalTitle = document.getElementById('modalDocTitle');
+        const modalBody = document.getElementById('modalBody');
+        
+        modalTitle.innerText = `${doc.titulo}  ·  ${weekName}`;
+        
+        // Crear el contenido con la imagen real
+        modalBody.innerHTML = `
+            <div>
+                <img id="previewImage" src="${doc.rutaArchivo}" class="image-viewer" 
+                     onerror="document.getElementById('imageError').style.display='block'; this.style.display='none';"
+                     onload="document.getElementById('imageError').style.display='none'; this.style.display='inline-block';">
+                <div id="imageError" class="error-message" style="display:none;">
+                    ❌ <strong>Error al cargar la imagen</strong><br>
+                    No se pudo encontrar la imagen en: <code>${escapeHtml(doc.rutaArchivo)}</code><br><br>
+                    <strong>Posibles causas:</strong><br>
+                    • La carpeta "imagenes" no existe o está vacía<br>
+                    • El nombre del archivo no coincide exactamente<br>
+                    • La extensión no es correcta (.png, .jpg, etc)
+                </div>
+                <div style="margin-top: 1.5rem;">
+                    <a href="${doc.rutaArchivo}" download class="download-link">⬇️ Descargar imagen</a>
+                    <a href="${doc.rutaArchivo}" target="_blank" class="download-link" style="background: #4a627a;">📖 Abrir en nueva pestaña</a>
+                </div>
+                <p style="font-size:0.75rem; margin-top:1rem; color:#6f8eae;">
+                    Ruta: <code>${escapeHtml(doc.rutaArchivo)}</code>
+                </p>
+            </div>
+        `;
+        
+        modal.style.display = 'flex';
+    }
+
+    function getIconForFile(extension) {
+        const ext = extension.toLowerCase();
+        if (ext === 'jpg' || ext === 'jpeg') return '🖼️';
+        if (ext === 'png') return '📷';
+        if (ext === 'gif') return '🎞️';
+        return '🖼️';
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    function renderWeeks() {
+        const weeksGrid = document.getElementById('weeksGrid');
+        weeksGrid.innerHTML = '';
+        
+        semanasData.forEach(week => {
+            const card = document.createElement('div');
+            card.className = 'week-card';
+            
+            card.innerHTML = `
+                <div class="week-header">
+                    <h2>${week.nombre}</h2>
+                    <div class="week-sub">
+                        <span>📆 ${week.fecha}</span>
+                        <span>📂 ${week.documentos.length} elemento(s)</span>
+                    </div>
+                </div>
+                <div class="documents-list" id="docs-${week.id}"></div>
+            `;
+            
+            const docsContainer = card.querySelector(`#docs-${week.id}`);
+            
+            if (week.documentos.length === 0) {
+                docsContainer.innerHTML = '<div class="empty-docs">📭 No hay elementos cargadas.</div>';
+            } else {
+                week.documentos.forEach((doc, idx) => {
+                    const docItem = document.createElement('div');
+                    docItem.className = 'doc-item';
+                    const icon = getIconForFile(doc.extension);
+                    
+                    docItem.innerHTML = `
+                        <div class="doc-info">
+                            <div class="doc-icon">${icon}</div>
+                            <div class="doc-details">
+                                <span class="doc-name">${escapeHtml(doc.titulo)}.${doc.extension}</span>
+                                <div class="doc-meta">
+                                    <span>📁 ${doc.extension.toUpperCase()}</span>
+                                    <span>🖼️ imagen</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn-preview" data-weekid="${week.id}" data-docidx="${idx}">👁️ Ver</button>
+                    `;
+                    
+                    const btn = docItem.querySelector('.btn-preview');
+                    btn.addEventListener('click', () => {
+                        const targetDoc = semanasData.find(w => w.id === week.id).documentos[idx];
+                        showImagePreview(targetDoc, week.nombre);
+                    });
+                    
+                    docsContainer.appendChild(docItem);
+                });
+            }
+            
+            weeksGrid.appendChild(card);
+        });
+    }
+
+    function init() {
+        renderWeeks();
+        
+        const modal = document.getElementById('previewModal');
+        const closeBtn = document.getElementById('closeModalBtn');
+        
+        closeBtn.addEventListener('click', () => modal.style.display = 'none');
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.style.display === 'flex') modal.style.display = 'none'; });
+    }
+    
+    init();
+</script>
+</body>
+</html>
